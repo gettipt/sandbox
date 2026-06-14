@@ -82,7 +82,7 @@ export default function Theater() {
         >
           <ChevronLeft className="w-4 h-4" />
           <img src={tiptLogo} alt="TIPT" className="w-5 h-5" />
-          <span className="tracking-widest">SANDBOX</span>
+          <span>SANDBOX</span>
         </Link>
         <span className="text-border">/</span>
         <span className="text-sm font-medium text-foreground">Video On-Demand</span>
