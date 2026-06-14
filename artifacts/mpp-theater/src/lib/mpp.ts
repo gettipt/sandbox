@@ -55,79 +55,122 @@ export async function probeExtension(timeoutMs = 1500): Promise<boolean> {
   });
 }
 
+function parseWwwAuthField(header: string, name: string): string | undefined {
+  return header.match(new RegExp(`${name}="([^"]+)"`))?.[1];
+}
+
+function randomId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `mpp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export async function unlockStream(): Promise<StreamResult> {
-  console.log("[mpp] unlockStream: step 1 — requesting stream (expecting 402)");
+  console.log("[mpp] step 1 — requesting stream (expecting 402)");
   const r1 = await fetch(`${BASE}/theater/stream`);
-  console.log("[mpp] unlockStream: step 1 response status", r1.status);
+  console.log("[mpp] step 1 response:", r1.status);
 
   if (r1.ok) {
-    console.log("[mpp] unlockStream: stream already unlocked (no payment needed)");
+    console.log("[mpp] stream already unlocked");
     return r1.json();
   }
-
   if (r1.status !== 402) {
     throw new Error(`Unexpected response: ${r1.status}`);
   }
 
-  const challenge = r1.headers.get("WWW-Authenticate");
-  console.log("[mpp] unlockStream: step 2 — got 402, WWW-Authenticate:", challenge);
-  if (!challenge) throw new Error("No payment challenge received from server");
+  const wwwAuth = r1.headers.get("WWW-Authenticate");
+  console.log("[mpp] step 2 — WWW-Authenticate:", wwwAuth);
+  if (!wwwAuth) throw new Error("No payment challenge in server response");
 
-  const id = challenge.match(/id="([^"]+)"/)?.[1];
-  const reqB64 = challenge.match(/request="([^"]+)"/)?.[1];
-  console.log("[mpp] unlockStream: parsed challenge id:", id, "| base64 length:", reqB64?.length);
-  if (!id || !reqB64) throw new Error("Could not parse payment challenge");
+  const id      = parseWwwAuthField(wwwAuth, "id");
+  const method  = parseWwwAuthField(wwwAuth, "method") ?? "lightning";
+  const realm   = parseWwwAuthField(wwwAuth, "realm") ?? "";
+  const reqB64  = parseWwwAuthField(wwwAuth, "request");
+  const expires = parseWwwAuthField(wwwAuth, "expires");
 
-  let challengeData: unknown;
+  console.log("[mpp] step 2 — parsed fields: id:", id, "| method:", method, "| realm:", realm, "| expires:", expires, "| request length:", reqB64?.length);
+  if (!id || !reqB64) throw new Error("Could not parse id/request from WWW-Authenticate");
+
+  let invoice: string;
+  let amountSats: number | undefined;
   try {
-    challengeData = JSON.parse(atob(reqB64));
-    console.log("[mpp] unlockStream: decoded challenge payload:", challengeData);
+    const payload = JSON.parse(atob(reqB64));
+    console.log("[mpp] step 2 — decoded request payload:", payload);
+    invoice = payload.methodDetails?.invoice;
+    const amt = payload.amount;
+    if (amt && /^\d+$/.test(String(amt))) amountSats = Number(amt);
   } catch {
     throw new Error("Could not decode payment challenge payload");
   }
 
-  console.log("[mpp] unlockStream: step 3 — dispatching mpp:challenge, waiting for mpp:credential...");
-  const credential = await new Promise<{ ph: string; preimage: string }>(
-    (resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error("Payment timed out after 90 seconds")),
-        90_000
-      );
+  if (!invoice) throw new Error("No BOLT11 invoice in payment challenge");
+  console.log("[mpp] step 2 — invoice:", invoice, "| amountSats:", amountSats);
 
-      const handler = (e: Event) => {
-        clearTimeout(timer);
-        const detail = (e as CustomEvent).detail ?? {};
-        console.log("[mpp] unlockStream: step 4 — mpp:credential received", detail);
-        resolve({
-          ph: detail.paymentHash ?? detail.ph ?? "",
-          preimage: detail.preimage ?? "",
-        });
-      };
-
-      window.addEventListener("mpp:credential", handler, { once: true });
-
-      window.dispatchEvent(
-        new CustomEvent("mpp:challenge", {
-          detail: { id, challenge: challengeData },
-        })
-      );
-    }
-  );
-
-  console.log("[mpp] unlockStream: step 5 — submitting proof | ph:", credential.ph, "| preimage:", credential.preimage);
-  const r2 = await fetch(`${BASE}/theater/stream`, {
-    headers: {
-      Authorization: `Payment id="${id}", ph="${credential.ph}", preimage="${credential.preimage}"`,
+  const requestId = randomId();
+  const challengeDetail = {
+    requestId,
+    invoice,
+    amountSats,
+    scheme: "Payment" as const,
+    challenge: {
+      id,
+      realm,
+      method,
+      intent: "charge",
+      request: reqB64,
+      expires,
     },
+  };
+
+  console.log("[mpp] step 3 — dispatching mpp:challenge with requestId:", requestId, "| full detail:", challengeDetail);
+
+  const credential = await new Promise<string>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error("Payment timed out after 90 seconds")),
+      90_000
+    );
+
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail ?? {};
+      console.log("[mpp] step 3 — mpp:credential event received:", detail);
+
+      if (detail.requestId !== undefined && detail.requestId !== requestId) {
+        console.log("[mpp] step 3 — ignoring credential, requestId mismatch:", detail.requestId, "!= expected:", requestId);
+        return;
+      }
+
+      clearTimeout(timer);
+      window.removeEventListener("mpp:credential", handler);
+
+      if (detail.approved === false) {
+        reject(new Error(detail.error ?? "MPP extension declined the payment"));
+        return;
+      }
+      if (!detail.credential) {
+        reject(new Error("Extension approved but returned no credential string"));
+        return;
+      }
+      console.log("[mpp] step 3 — credential received:", detail.credential);
+      resolve(detail.credential as string);
+    };
+
+    window.addEventListener("mpp:credential", handler);
+    window.dispatchEvent(new CustomEvent("mpp:challenge", { detail: challengeDetail }));
   });
-  console.log("[mpp] unlockStream: step 5 response status", r2.status);
+
+  console.log("[mpp] step 4 — submitting proof, Authorization:", credential);
+  const r2 = await fetch(`${BASE}/theater/stream`, {
+    headers: { Authorization: credential },
+  });
+  console.log("[mpp] step 4 response:", r2.status);
 
   if (!r2.ok) {
     throw new Error(`Stream unlock failed: ${r2.status} ${r2.statusText}`);
   }
 
   const result = await r2.json();
-  console.log("[mpp] unlockStream: success — stream URL:", result.url);
+  console.log("[mpp] step 4 — success! URL:", result.url);
   return result;
 }
 
