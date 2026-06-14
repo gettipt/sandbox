@@ -21,7 +21,7 @@ const tiles: Tile[] = [
       "Pay-per-view streaming gated by a Lightning invoice. One payment, instant access.",
     icon: <Film className="w-7 h-7" />,
     status: "live",
-    accent: "from-amber-500/20 to-amber-500/5 border-amber-500/30",
+    accent: "from-green-600/20 to-green-600/5 border-green-600/30",
   },
   {
     slug: "coming-soon",
@@ -41,8 +41,8 @@ export default function Home() {
       <header className="border-b border-border px-6 py-4 flex items-center gap-3">
         <div className="flex items-center gap-2">
           <img src={tiptLogo} alt="TIPT" className="w-8 h-8" />
-          <span className="font-semibold tracking-tight text-foreground text-lg">
-            Sandbox
+          <span className="font-semibold tracking-tight text-foreground text-lg tracking-widest">
+            SANDBOX
           </span>
         </div>
         <div className="ml-auto text-xs text-muted-foreground">
@@ -53,7 +53,7 @@ export default function Home() {
       {/* Hero */}
       <section className="px-6 pt-16 pb-10 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          TIPT Sandbox
+          TIPT SANDBOX
         </h1>
         <p className="mt-3 text-muted-foreground max-w-md mx-auto text-base leading-relaxed">
           Interactive demos for Lightning-native payments over HTTP 402.
