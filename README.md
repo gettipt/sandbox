@@ -1,0 +1,108 @@
+# Sandbox Workspace
+
+This folder is a `pnpm` monorepo used for sandboxed artifacts and supporting packages.
+
+## Prerequisites
+
+- Node.js 24.x
+- pnpm 10+
+- A bash-like shell on Windows (Git Bash/WSL) is recommended
+
+Notes:
+- The workspace enforces `pnpm` via a preinstall check.
+- Some scripts (for example the API server `dev` script) use shell syntax that works best in bash.
+
+## Install dependencies
+
+From this folder:
+
+```bash
+cd sandbox
+pnpm install
+```
+
+## Build Process
+
+Run from `sandbox/`:
+
+```bash
+pnpm run typecheck
+pnpm run build
+```
+
+- `typecheck`: validates shared libs and selected workspace packages.
+- `build`: runs `typecheck` first, then runs package `build` scripts recursively.
+
+## Architecture
+
+The sandbox provides a full-stack dev environment for mpp-theater, a Lightning 402 payment demo:
+
+- **API server** (`@workspace/api-server`): Express + Drizzle backend serving `/api/theater/*` endpoints for the demo content.
+- **mpp-theater** (`@workspace/mpp-theater`): React/Vite UI that fetches from the API and integrates Lightning payment flows.
+- **mockup-sandbox** (`@workspace/mockup-sandbox`): Standalone UI component showcase (no backend dependency).
+- **Shared libs**: `@workspace/api-spec` (OpenAPI contract), `@workspace/api-zod` (validation schemas), `@workspace/db` (database schema).
+
+Project-level standardized commands:
+
+- API server (`@workspace/api-server`): `dev`, `typecheck`, `build`, `preview`.
+- Mockup sandbox (`@workspace/mockup-sandbox`): `dev`, `typecheck`, `build`, `preview`.
+- MPP theater (`@workspace/mpp-theater`): `dev`, `typecheck`, `build`, `preview`.
+- Shared libs (`@workspace/api-zod`, `@workspace/db`): `typecheck`, `build`.
+
+## Run artifacts locally
+
+### API server
+
+```bash
+pnpm --filter @workspace/api-server run dev
+```
+
+Required environment variable:
+
+- `DATABASE_URL`: Postgres connection string
+
+If you do not have a database available yet, start one first and then run the command above.
+
+### Mockup sandbox (Vite app)
+
+```bash
+pnpm --filter @workspace/mockup-sandbox run dev
+```
+
+Vite will print the local URL in the terminal (typically `http://localhost:5173`).
+
+### MPP theater (Vite app)
+
+```bash
+pnpm --filter @workspace/mpp-theater run dev
+```
+
+Vite will print the local URL in the terminal.
+
+## Helpful package-level commands
+
+```bash
+pnpm --filter @workspace/api-spec run codegen
+pnpm --filter @workspace/db run push
+```
+
+- `codegen`: regenerate API hooks and schemas from OpenAPI
+- `push`: push DB schema changes for development
+
+## Troubleshooting
+
+- If install fails with "Use pnpm instead", run with `pnpm` only (not npm/yarn).
+- If API `dev` fails in PowerShell/CMD, run it in Git Bash/WSL or run `build` then `start` separately:
+
+```bash
+pnpm --filter @workspace/api-server run build
+pnpm --filter @workspace/api-server run start
+```
+- If `/vod` shows `Unexpected token '<'` or `<!DOCTYPE ... is not valid JSON`, start both services and keep them running:
+
+```bash
+pnpm --filter @workspace/api-server run dev
+pnpm --filter @workspace/mpp-theater run dev
+```
+
+This happens when the UI receives HTML (Vite index page) instead of JSON from `/api/theater/info`.

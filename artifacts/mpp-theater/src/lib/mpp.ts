@@ -20,6 +20,15 @@ export interface StreamResult {
 export async function fetchFilmInfo(): Promise<FilmInfo> {
   const res = await fetch(`${BASE}/theater/info`);
   if (!res.ok) throw new Error("Failed to fetch film info");
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const body = await res.text();
+    if (body.startsWith("<!DOCTYPE") || body.startsWith("<html")) {
+      throw new Error(
+        "API returned HTML instead of JSON. Ensure api-server is running and /api is proxied to it.",
+      );
+    }
+  }
   return res.json();
 }
 
