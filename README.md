@@ -77,7 +77,10 @@ Vite will print the local URL in the terminal (typically `http://localhost:5173`
 pnpm --filter @workspace/mpp-theater run dev
 ```
 
-Vite will print the local URL in the terminal.
+Vite will print the local URL in the terminal. The app includes two experiments:
+
+- `/vod` (Video On-Demand)
+- `/sdk-demo` (SDK Payment Playground)
 
 ## Helpful package-level commands
 

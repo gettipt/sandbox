@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Film, Lock } from "lucide-react";
+import { Film, Wallet } from "lucide-react";
 import tiptLogo from "@assets/tiptgreen_1781472935194.svg";
 
 interface Tile {
@@ -24,13 +24,14 @@ const tiles: Tile[] = [
     accent: "from-green-600/20 to-green-600/5 border-green-600/30",
   },
   {
-    slug: "coming-soon",
-    href: "#",
-    label: "Coming Soon",
-    description: "A second Lightning-powered experience is on the way.",
-    icon: <Lock className="w-7 h-7" />,
-    status: "coming-soon",
-    accent: "from-neutral-500/10 to-neutral-500/5 border-neutral-700/40",
+    slug: "sdk-demo",
+    href: "/sdk-demo",
+    label: "SDK Payment Playground",
+    description:
+      "Interactive Lightning Address and LNURL checkout simulation using the TIPT extension bridge.",
+    icon: <Wallet className="w-7 h-7" />,
+    status: "live",
+    accent: "from-cyan-600/20 to-cyan-600/5 border-cyan-600/30",
   },
 ];
 

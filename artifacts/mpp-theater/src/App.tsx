@@ -4,12 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Theater from "@/pages/Theater";
+import SdkDemo from "@/pages/SdkDemo";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/vod" component={Theater} />
+      <Route path="/sdk-demo" component={SdkDemo} />
       <Route component={NotFound} />
     </Switch>
   );
