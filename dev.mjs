@@ -148,7 +148,7 @@ console.log(`[dev] ${apiPlan.reason}: ${apiPlan.apiBaseUrl}`);
 
 if (apiPlan.startApi) {
   const apiChild = spawnPnpm(
-    ["--filter", "./artifacts/api-server", "run", "dev"],
+    ["--filter", "./artifacts/server", "run", "dev"],
     { PORT: String(apiPlan.port), NODE_ENV: "development" },
     "api",
   );
@@ -162,7 +162,7 @@ if (apiPlan.startApi) {
 }
 
 const webChild = spawnPnpm(
-  ["--filter", "@workspace/sandbox", "run", "dev"],
+  ["--filter", "@workspace/client", "run", "dev"],
   { API_BASE_URL: apiPlan.apiBaseUrl },
   "web",
 );

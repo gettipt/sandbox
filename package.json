@@ -5,8 +5,8 @@
   "scripts": {
     "preinstall": "node -e \"const ua = process.env.npm_config_user_agent; if (!ua || ua.startsWith('pnpm/')) process.exit(0); console.error('Use pnpm instead'); process.exit(1)\" && rm -f package-lock.json yarn.lock",
     "dev": "node ./dev.mjs",
-    "build": "pnpm --filter @workspace/sandbox run build",
-    "preview": "pnpm --filter @workspace/sandbox run preview",
+    "build": "pnpm --filter @workspace/client run build",
+    "preview": "pnpm --filter @workspace/client run preview",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

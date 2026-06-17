@@ -1,8 +1,8 @@
 kind = "web"
 previewPath = "/"
-title = "MPP Theater"
+title = "Client"
 version = "1.0.0"
-id = "artifacts/mpp-theater"
+id = "artifacts/client"
 router = "path"
 
 [[integratedSkills]]
@@ -15,11 +15,11 @@ paths = [ "/" ]
 localPort = 19310
 
 [services.development]
-run = "pnpm --filter @workspace/mpp-theater run dev"
+run = "pnpm --filter @workspace/client run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/mpp-theater", "run", "build" ]
-publicDir = "artifacts/mpp-theater/dist/public"
+build = [ "pnpm", "--filter", "@workspace/client", "run", "build" ]
+publicDir = "artifacts/client/dist/public"
 serve = "static"
 
 [[services.production.rewrites]]
