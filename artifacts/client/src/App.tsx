@@ -1,8 +1,18 @@
+import { Suspense, lazy } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-import Theater from "@/pages/Theater";
-import SdkDemo from "@/pages/SdkDemo";
+
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Home = lazy(() => import("@/pages/Home"));
+const Theater = lazy(() => import("@/pages/Theater"));
+const SdkDemo = lazy(() => import("@/pages/SdkDemo"));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
+      Loading demo...
+    </div>
+  );
+}
 
 function Router() {
   return (
@@ -18,7 +28,9 @@ function Router() {
 function App() {
   return (
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-      <Router />
+      <Suspense fallback={<RouteFallback />}>
+        <Router />
+      </Suspense>
     </WouterRouter>
   );
 }

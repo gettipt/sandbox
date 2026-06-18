@@ -25,6 +25,44 @@ export default defineConfig({
   build: {
     outDir: path.resolve(projectRoot, "dist"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 6200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const normalized = id.replaceAll("\\\\", "/");
+
+          if (normalized.includes("/sdk/")) {
+            return "mpp-sdk";
+          }
+
+          if (!normalized.includes("/node_modules/")) {
+            return;
+          }
+
+          if (normalized.includes("/react/") || normalized.includes("/react-dom/")) {
+            return "react-vendor";
+          }
+
+          if (normalized.includes("/wouter/")) {
+            return "router-vendor";
+          }
+
+          if (normalized.includes("/lucide-react/")) {
+            return "icon-vendor";
+          }
+
+          if (normalized.includes("/@buildonspark/spark-sdk/")) {
+            return "spark-sdk-vendor";
+          }
+
+          if (normalized.includes("/lightning-mpp-extension-sdk/")) {
+            return "mpp-extension-vendor";
+          }
+
+          return;
+        },
+      },
+    },
   },
   server: {
     port,
