@@ -5,6 +5,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("@/pages/Home"));
 const Theater = lazy(() => import("@/pages/Theater"));
 const SdkDemo = lazy(() => import("@/pages/SdkDemo"));
+const NewsPaywall = lazy(() => import("@/pages/NewsPaywall"));
 
 function RouteFallback() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/vod" component={Theater} />
       <Route path="/sdk-demo" component={SdkDemo} />
+      <Route path="/news-paywall" component={NewsPaywall} />
       <Route component={NotFound} />
     </Switch>
   );

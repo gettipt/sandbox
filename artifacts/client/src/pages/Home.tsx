@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Film, Wallet } from "lucide-react";
+import { Film, Wallet, Newspaper } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
 interface Tile {
@@ -32,6 +32,16 @@ const tiles: Tile[] = [
     icon: <Wallet className="w-7 h-7" />,
     status: "live",
     accent: "from-cyan-600/20 to-cyan-600/5 border-cyan-600/30",
+  },
+  {
+    slug: "news-paywall",
+    href: "/news-paywall",
+    label: "News Article Paywall",
+    description:
+      "Long-form article content gated by a paywall overlay that requires payment before reading.",
+    icon: <Newspaper className="w-7 h-7" />,
+    status: "live",
+    accent: "from-orange-600/20 to-orange-600/5 border-orange-600/30",
   },
 ];
 

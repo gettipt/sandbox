@@ -1,10 +1,10 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
-import theaterRouter from "./theater";
+import moviesRouter from "./movies";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
-router.use(theaterRouter);
+router.use(moviesRouter);
 
 export default router;

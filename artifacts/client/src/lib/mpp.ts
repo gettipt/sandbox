@@ -4,7 +4,7 @@ import {
 } from "lightning-mpp-extension-sdk";
 
 const BASE = "/api";
-const UPSTREAM_BASE = "https://mpptheater.replit.app/api";
+const UPSTREAM_BASE = "https://mppapi.replit.app/api";
 
 export interface FilmInfo {
   id: string;
@@ -68,8 +68,8 @@ async function parseErrorMessage(response: Response, fallback: string): Promise<
 export async function fetchFilms(limit = 5): Promise<FilmInfo[]> {
   const safeLimit = Math.max(1, Math.min(5, Math.floor(limit)));
   const targets = [
-    `${BASE}/titles`,
-    `${UPSTREAM_BASE}/titles`,
+    `${BASE}/movies`,
+    `${UPSTREAM_BASE}/movies`,
   ];
   let lastError = "Failed to fetch film list";
 
@@ -149,8 +149,8 @@ export async function unlockStream(filmId: string): Promise<StreamResult> {
   });
 
   const targets = [
-    `${BASE}/stream?id=${encodeURIComponent(filmId)}`,
-    `${UPSTREAM_BASE}/stream?id=${encodeURIComponent(filmId)}`,
+    `${BASE}/movies/${encodeURIComponent(filmId)}`,
+    `${UPSTREAM_BASE}/movies/${encodeURIComponent(filmId)}`,
   ];
 
   let lastError = "Stream unlock failed";
@@ -179,7 +179,7 @@ export async function unlockStream(filmId: string): Promise<StreamResult> {
 
   const hasMissingWwwAuth = failures.some((failure) => failure.includes("Missing WWW-Authenticate header"));
   if (hasMissingWwwAuth) {
-    throw new Error(`${lastError}. Ensure /api/stream is reachable and proxies the upstream payment challenge response.`);
+    throw new Error(`${lastError}. Ensure /api/movies/:id is reachable and proxies the upstream payment challenge response.`);
   }
 
   throw new Error(lastError);
