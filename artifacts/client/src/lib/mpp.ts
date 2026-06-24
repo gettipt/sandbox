@@ -3,8 +3,7 @@ import {
   probeLightningMppExtension,
 } from "lightning-mpp-extension-sdk";
 
-const BASE = "/api";
-const UPSTREAM_BASE = "https://mppapi.replit.app/api";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) || "https://mppapi.replit.app/api";
 
 export interface FilmInfo {
   id: string;
@@ -67,56 +66,38 @@ async function parseErrorMessage(response: Response, fallback: string): Promise<
 
 export async function fetchFilms(limit = 5): Promise<FilmInfo[]> {
   const safeLimit = Math.max(1, Math.min(5, Math.floor(limit)));
-  const targets = [
-    `${BASE}/movies`,
-    `${UPSTREAM_BASE}/movies`,
-  ];
-  let lastError = "Failed to fetch film list";
+  const target = `${API_BASE}/movies`;
 
-  for (const target of targets) {
-    try {
-      const res = await fetch(target);
-      if (!res.ok) {
-        const detail = await parseErrorMessage(res, `HTTP ${res.status}`);
-        lastError = `Failed to fetch film list (${res.status}): ${detail}`;
-        continue;
-      }
-
-      const contentType = res.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
-        const body = await res.text();
-        if (body.startsWith("<!DOCTYPE") || body.startsWith("<html")) {
-          lastError = "API returned HTML instead of JSON. Ensure api-server is running and /api is proxied to it.";
-          continue;
-        }
-      }
-
-      const payload = await res.json();
-      if (Array.isArray(payload)) {
-        const films = payload
-          .map((film) => normalizeFilm(film))
-          .filter((film): film is FilmInfo => film !== null)
-          .slice(0, safeLimit);
-
-        if (!films.length) {
-          lastError = "No films available";
-          continue;
-        }
-        return films;
-      }
-
-      const single = normalizeFilm(payload);
-      if (single) {
-        return [single];
-      }
-
-      lastError = "Received invalid film payload";
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
+  try {
+    const res = await fetch(target);
+    if (!res.ok) {
+      const detail = await parseErrorMessage(res, `HTTP ${res.status}`);
+      throw new Error(`Failed to fetch film list (${res.status}): ${detail}`);
     }
-  }
 
-  throw new Error(lastError);
+    const payload = await res.json();
+    if (Array.isArray(payload)) {
+      const films = payload
+        .map((film) => normalizeFilm(film))
+        .filter((film): film is FilmInfo => film !== null)
+        .slice(0, safeLimit);
+
+      if (!films.length) {
+        throw new Error("No films available");
+      }
+      return films;
+    }
+
+    const single = normalizeFilm(payload);
+    if (single) {
+      return [single];
+    }
+
+    throw new Error("Received invalid film payload");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch film list: ${message}`);
+  }
 }
 
 export async function fetchFilmInfo(): Promise<FilmInfo> {
@@ -148,41 +129,28 @@ export async function unlockStream(filmId: string): Promise<StreamResult> {
     extensionProbeTimeoutMs: 1500,
   });
 
-  const targets = [
-    `${BASE}/movies/${encodeURIComponent(filmId)}`,
-    `${UPSTREAM_BASE}/movies/${encodeURIComponent(filmId)}`,
-  ];
+  const target = `${API_BASE}/movies/${encodeURIComponent(filmId)}`;
 
-  let lastError = "Stream unlock failed";
-  const failures: string[] = [];
-  for (const target of targets) {
-    try {
-      const response = await client.fetch(target, {
-        method: "GET",
-      });
-      if (!response.ok) {
-        const detail = await parseErrorMessage(response, response.statusText);
-        lastError = `Stream unlock failed: ${response.status} ${detail}`;
-        failures.push(`${target}: ${lastError}`);
-        continue;
-      }
-
-      const result = (await response.json()) as StreamResult;
-      console.log("[mpp] unlockStream: success! URL:", result.url);
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      lastError = `Stream unlock failed: ${message}`;
-      failures.push(`${target}: ${message}`);
+  try {
+    const response = await client.fetch(target, {
+      method: "GET",
+    });
+    if (!response.ok) {
+      const detail = await parseErrorMessage(response, response.statusText);
+      throw new Error(`Stream unlock failed: ${response.status} ${detail}`);
     }
-  }
 
-  const hasMissingWwwAuth = failures.some((failure) => failure.includes("Missing WWW-Authenticate header"));
-  if (hasMissingWwwAuth) {
-    throw new Error(`${lastError}. Ensure /api/movies/:id is reachable and proxies the upstream payment challenge response.`);
-  }
+    const result = (await response.json()) as StreamResult;
+    console.log("[mpp] unlockStream: success! URL:", result.url);
+    return result;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("Missing WWW-Authenticate header")) {
+      throw new Error(`${message}. Ensure ${API_BASE}/movies/:id returns the upstream payment challenge response.`);
+    }
 
-  throw new Error(lastError);
+    throw new Error(`Stream unlock failed: ${message}`);
+  }
 }
 
 export function formatDuration(seconds: number): string {

@@ -1,6 +1,6 @@
 # Sandbox Workspace
 
-This folder is a `pnpm` monorepo used for sandboxed artifacts and supporting packages. It provides a full-stack Lightning 402 payment demo environment.
+This folder is a `pnpm` monorepo used for sandboxed artifacts and supporting packages. It provides a Lightning 402 payment demo environment.
 
 ## Prerequisites
 
@@ -36,10 +36,10 @@ pnpm run build
 
 ## Architecture
 
-The sandbox provides a full-stack dev environment with a backend API and frontend client:
+The sandbox currently runs as a client-first app that calls the hosted MPP API directly:
 
-- **Server** (`@workspace/server`): Express + Drizzle backend serving `/api/*` endpoints.
-- **Client** (`@workspace/client`): React/Vite frontend that consumes the API and integrates Lightning payment flows.
+- **Client** (`@workspace/client`): React/Vite frontend that calls `https://mppapi.replit.app/api` and integrates Lightning payment flows.
+- **Server** (`@workspace/server`): Optional local proxy/service layer for local experiments.
 - **Shared libs**: `@workspace/api-spec` (OpenAPI contract), `@workspace/api-zod` (validation schemas), `@workspace/db` (database schema).
 
 Project-level standardized commands:
@@ -48,19 +48,11 @@ Project-level standardized commands:
 - Client (`@workspace/client`): `dev`, `typecheck`, `build`, `preview`.
 - Shared libs (`@workspace/api-zod`, `@workspace/db`): `typecheck`, `build`.
 
-## Running the Applications Locally
+## Running the Application Locally
 
-### Start the server first (proxies to upstream Replit deployment)
+### Client
 
-```bash
-pnpm --filter @workspace/server run dev
-```
-
-The server will run on `http://localhost:5000`.
-
-### Client (requires server running)
-
-In a new terminal (after server is running):
+The client works standalone and calls the hosted API directly by default:
 
 ```bash
 pnpm --filter @workspace/client run dev
@@ -68,8 +60,36 @@ pnpm --filter @workspace/client run dev
 
 Vite will print the local URL. The app includes two experiments:
 
-- `/vod` (Video On-Demand) - Requires the API server running
+- `/vod` (Video On-Demand)
 - `/sdk-demo` (SDK Payment Playground)
+
+Optional: override the API base URL for client builds/runs:
+
+```bash
+VITE_API_BASE_URL=https://mppapi.replit.app/api
+```
+
+### Optional local server
+
+If you still want to run the local server package:
+
+```bash
+pnpm --filter @workspace/server run dev
+```
+
+The server runs on `http://localhost:5000`.
+
+## Deploying To Vercel
+
+This repo is configured for frontend-only deployment on Vercel.
+
+1. Import the repository into Vercel.
+2. Keep the project root at `sandbox/`.
+3. Ensure the build command is `pnpm --filter @workspace/client run build`.
+4. Ensure output directory is `artifacts/client/dist`.
+5. Set `VITE_API_BASE_URL` only if you need a non-default API host.
+
+The included `vercel.json` handles SPA rewrites so routes like `/vod` work on refresh.
 
 ## Helpful package-level commands
 
@@ -82,9 +102,9 @@ pnpm --filter @workspace/api-spec run codegen
 ## Troubleshooting
 
 - If install fails with "Use pnpm instead", run with `pnpm` only (not npm/yarn).
-- If API `dev` fails in PowerShell/CMD, run it in Git Bash/WSL or run `build` then `start` separately:
+- If server `dev` fails in PowerShell/CMD, run it in Git Bash/WSL or run `build` then `start` separately:
 
 ```bash
-pnpm --filter @workspace/api-server run build
-pnpm --filter @workspace/api-server run start
+pnpm --filter @workspace/server run build
+pnpm --filter @workspace/server run start
 ```

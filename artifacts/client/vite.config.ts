@@ -68,20 +68,6 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
-    proxy: {
-      "/api/movies": {
-        target: "https://mppapi.replit.app",
-        changeOrigin: true,
-      },
-      "/api/news": {
-        target: "https://mppapi.replit.app",
-        changeOrigin: true,
-      },
-      "/api": {
-        target: process.env.API_BASE_URL || "http://localhost:5000",
-        changeOrigin: true,
-      },
-    },
     fs: {
       strict: true,
       allow: [projectRoot, sdkRoot, attachedAssetsRoot],
