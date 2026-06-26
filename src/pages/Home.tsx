@@ -64,6 +64,13 @@ export default function Home() {
           ))}
         </div>
 
+        <section className="max-w-3xl mx-auto mt-8 text-center">
+          <h2 className="text-lg font-semibold text-foreground">Other Potential Use Cases</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Ad-Free Podcasts • Pay-Per-Stream Music • Global P2P Payments • Tip Content Creators • GoFundMe-Style Campaigns • Frictionless Ecommerce
+          </p>
+        </section>
+
         <div className="max-w-3xl mx-auto mt-6 text-center">
           <a
             href="https://mpp.dev/services"
