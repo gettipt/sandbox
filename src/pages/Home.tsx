@@ -52,7 +52,7 @@ export default function Home() {
           TIPT SANDBOX
         </h1>
         <p className="mt-3 text-muted-foreground max-w-md mx-auto text-base leading-relaxed">
-          Interactive demos for Lightning-native payments over HTTP 402.
+          Interactive demos using bitcoin over HTTP 402.
         </p>
       </section>
 
