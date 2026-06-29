@@ -65,9 +65,15 @@ export default function Home() {
         </div>
 
         <section className="max-w-3xl mx-auto mt-8 text-center">
-          <h2 className="text-lg font-semibold text-foreground">Other Potential Use Cases</h2>
+          <h2 className="text-lg font-semibold text-foreground">Other Pay-to-Play Use Cases</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Ad-Free Podcasts • Pay-Per-Stream Music • Global P2P Payments • Tip Content Creators • GoFundMe-Style Campaigns • Frictionless Ecommerce
+            Ad-Free Podcasts • Pay-Per-Stream Music • Global P2P Payments • Tipping Content Creators • GoFundMe Campaigns • Frictionless Ecommerce • In-App Purchases
+          </p>
+          </section>
+          <section className="max-w-3xl mx-auto mt-8 text-center">
+          <h2 className="text-lg font-semibold text-foreground">Additional Pay-for-Play Use Cases</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Loyalty Programs (Bing Reward, Rakuten Cash Back) • Paid Ads (Brave Browser Rewards) • Anonymized Tracking (Nielsen Computer & Mobile Panel) • Distributed Inference
           </p>
         </section>
 
