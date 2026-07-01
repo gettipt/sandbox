@@ -1,3 +1,4 @@
 allowBuilds:
-  esbuild: set this to true or false
-  protobufjs: set this to true or false
+  esbuild: true
+  protobufjs: true
+  lightning-mpp-extension-sdk@https://codeload.github.com/gettipt/sdk/tar.gz/da5e716bef4061e752a68a2a508f13b3269b2752: true
